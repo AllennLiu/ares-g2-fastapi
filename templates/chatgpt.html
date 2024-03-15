@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>ChatGPT</title>
+    </head>
+    <body>
+        <h1>Welcome ChatGPT</h1>
+        <form action="">
+            <input type="text" id="messageText" autocomplete="off" required/>
+            <button id="sendButton" type="button" onclick="sendMessage(event)">提交信息</button>
+            <button id="clearButton" type="button">清除信息</button>
+        </form>
+        <ul id='messages'></ul>
+        <script>
+            const loading = document.createElement('span')
+            const input = document.getElementById('messageText')
+            const messages = document.getElementById('messages')
+            const sender = document.getElementById('sendButton')
+            const tidyup = document.getElementById('clearButton')
+            const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+            loading.innerHTML = '<font style="color: darkgray;">正在思考中…</font>'
+            tidyup.addEventListener('click', _event => {
+                if (messages.innerHTML.trim() === '') return
+                if (confirm('请问是否要清除对话纪录？')) messages.innerHTML = ''
+            })
+            input.addEventListener('keydown', event => {
+                if (event.keyCode === 13) return event.preventDefault()
+            })
+            const startWebsocket = () => {
+                const userId = 'administrator'
+                var ws = new WebSocket(`ws://${window.location.host}/openai/ws/chat/${userId}/${date}`)
+                ws.onmessage = event => {
+                    const resp = JSON.parse(event.data)
+                    const content = document.createElement('span')
+                    if (resp.completion === true) {
+                        messages.removeChild(loading)
+                        input.disabled = false
+                        sender.disabled = false
+                    } else {
+                        content.innerHTML = resp.content.replace(/(?:\r\n|\r|\n)/g, '<br>')
+                        messages.children[ messages.children.length - 2 ].appendChild(content)
+                        messages.appendChild(loading)
+                    }
+                }
+                return ws
+            }
+            var ws = startWebsocket()
+            const sendMessage = event => {
+                if (input.value.trim() === '') return
+                if (ws.readyState === 3) ws = startWebsocket()
+                if (ws.readyState !== 1) {
+                    return alert('当前服务处于不可用状态！')
+                }
+                const userMessage = document.createElement('li')
+                const botMessage = document.createElement('li')
+                const user = document.createElement('span')
+                const assistant = document.createElement('span')
+                const content = document.createTextNode(input.value)
+                user.innerHTML = '<span style="color: blue; font-weight: 600;">使用者：</span>'
+                assistant.innerHTML = '<span style="color: green; font-weight: 600;">机器人：</span>'
+                ws.send(input.value)
+                input.value = ''
+                userMessage.appendChild(user)
+                userMessage.appendChild(content)
+                botMessage.appendChild(assistant)
+                messages.appendChild(userMessage)
+                messages.appendChild(botMessage)
+                input.disabled = true
+                sender.disabled = true
+                event.preventDefault()
+            }
+        </script>
+    </body>
+</html>

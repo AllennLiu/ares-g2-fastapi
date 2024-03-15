@@ -1,0 +1,10 @@
+# This configuration is default ansible 'hosts' file.
+#
+# It must be located in /etc/ansible/hosts
+[validation_server]
+<SUT_IP>
+
+[validation_server:vars]
+ansible_ssh_pass='<SUT_PASS>'
+ansible_ssh_user='<SUT_USER>'
+ansible_ssh_port='22'

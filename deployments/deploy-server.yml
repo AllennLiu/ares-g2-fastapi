@@ -1,0 +1,111 @@
+# configmap 'pyapp-config' must be deployed before this apply
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ares-g2-fastapi
+  namespace: kube-ops
+spec:
+  selector:
+    matchLabels:
+      app: ares-g2-fastapi
+  replicas: 8
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: ares-g2-fastapi
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - ipt-k8s-node2
+                      - ipt-k8s-node4
+      containers:
+        - name: ares-g2-fastapi
+          image: <CI_REGISTRY_IMAGE>
+          command: [ "bash" ]
+          args:
+            - service.sh
+            - --prod
+          imagePullPolicy: Always
+          ports:
+            - name: server
+              containerPort: 8787
+            - name: ssh
+              containerPort: 22
+          volumeMounts:
+            - name: tz-config
+              mountPath: /etc/localtime
+              readOnly: true
+            - name: nas-mount
+              mountPath: /mnt
+              readOnly: false
+            - name: pyapp-config
+              mountPath: /usr/src/app/settings.json
+              subPath: settings.json
+      volumes:
+        - name: tz-config
+          hostPath:
+            path: /usr/share/zoneinfo/Asia/Shanghai
+        - name: nas-mount
+          hostPath:
+            path: /mnt
+        - name: pyapp-config
+          configMap:
+            name: pyapp-config
+      imagePullSecrets:
+        - name: gitlab-registry
+      terminationGracePeriodSeconds: 20
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: ares-g2-fastapi
+  namespace: kube-ops
+  labels:
+    app: ares-g2-fastapi
+
+spec:
+  type: NodePort
+  ports:
+    - name: server
+      port: 8787
+      targetPort: 8787
+      nodePort: 8787
+    - name: ssh
+      port: 22
+      targetPort: 22
+      nodePort: 8788
+  selector:
+    app: ares-g2-fastapi
+
+---
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ares-g2-fastapi-ingress
+  namespace: kube-ops
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/proxy-max-temp-file-size: "1024m"
+    nginx.ingress.kubernetes.io/send_timeout: "86400"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "86400"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "86400"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "86400"
+spec:
+  rules:
+    - host: ares-g2-fastapi.cloudnative.ies.inventec
+      http:
+        paths:
+          - backend:
+              serviceName: ares-g2-fastapi
+              servicePort: 8787

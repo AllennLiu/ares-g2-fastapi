@@ -1,0 +1,262 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <title>{{ subject }}</title>
+    <style data-premailer="ignore" type="text/css">
+      body,table,td,a{-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}table,td{mso-table-lspace:0pt;mso-table-rspace:0pt}img{-ms-interpolation-mode:bicubic}.hidden{display:none !important;visibility:hidden !important}a[x-apple-data-detectors]{color:inherit !important;text-decoration:none !important;font-size:inherit !important;font-family:inherit !important;font-weight:inherit !important;line-height:inherit !important}div[style*='margin: 16px 0']{margin:0 !important}@media only screen and (max-width: 639px){body,#body{min-width:320px !important}table.wrapper{width:100% !important;min-width:320px !important}table.wrapper td.wrapper-cell{border-left:0 !important;border-right:0 !important;border-radius:0 !important;padding-left:10px !important;padding-right:10px !important}}
+    </style>
+    <style>body {
+      margin: 0 !important; background-color: #fafafa; padding: 0; text-align: center; min-width: 640px; width: 100%; height: 100%; font-family: "Microsoft JhengHei;
+      }
+    </style>
+  </head>
+  {% set ares_url = 'http://{}'.format(ares_endpoint) %}
+  {% set priority_tags = {
+    "P1": { "label": "紧急处理", "color": "#f56c6c", "bg": "#f89898", "msg": "，将会影响到测试时程，请尽快处理" },
+    "P2": { "label": "优化需求", "color": "#409eff", "bg": "#79bbff", "msg": "，有可能会影响到测试时程" },
+    "P3": { "label": "长期开发", "color": "#67c23a", "bg": "#95d475", "msg": "" }
+  } %}
+  <body style="text-align: center; min-width: 640px; width: 100%; height: 100%; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; margin: 0; padding: 0;" bgcolor="#fafafa">
+    <table border="0" cellpadding="0" cellspacing="0" id="body" style="text-align: center; min-width: 640px; width: 100%; margin: 0; padding: 0;" bgcolor="#fafafa">
+      <tbody>
+        <tr class="line">
+          <td style="font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; height: 4px; font-size: 4px; line-height: 4px;" bgcolor="#6b4fbb"></td>
+        </tr>
+        <tr class="header">
+          <td style="font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 13px; line-height: 1.6; color: #5c5c5c; padding: 25px 0;">
+            <img style="height: 50px;" src="cid:logo_inventec">
+          </td>
+        </tr>
+        <tr>
+          <td style="font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif;">
+            <table border="0" cellpadding="0" cellspacing="0" class="wrapper" style="width: 640px; border-collapse: separate; border-spacing: 0; margin: 0 auto;">
+              <tbody>
+                <tr>
+                  <td class="wrapper-cell" style="font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; border-radius: 3px; overflow: hidden; padding: 18px 25px; border: 1px solid #ededed;" align="left" bgcolor="#ffffff">
+                    <table border="0" cellpadding="0" cellspacing="0" class="content" style="width: 100%; border-collapse: separate; border-spacing: 0;">
+                      <tbody>
+                        <tr class="alert">
+                          <td style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; border-radius: 3px; font-size: 14px; line-height: 1.3; overflow: hidden; color: #ffffff; padding: 10px;" align="center" bgcolor="{{ priority_tags[mission['priority']]['bg'] }}">
+                            <table border="0" cellpadding="0" cellspacing="0" class="img" style="border-collapse: collapse; margin: 0 auto;">
+                              <tbody>
+                                <tr>
+                                  <td style="font-family: 'Microsoft JhengHei','Helvetica Neue',Helvetica,Arial,sans-serif; color: #ffffff; font-weight: 600; text-align: center;" valign="middle">
+                                    亲爱的同仁 {{ mission['current'] | replace(';', '、') }} 您好！<br>
+                                    您有一项优先级为 {{ mission['priority'] }} 的任务，已逾时 {{ mission['overdays'] }} 天仍未处理{{ priority_tags[mission['priority']]['msg'] }}。
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </td>
+                        </tr>
+                        <tr class="spacer">
+                          <td style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; height: 18px; font-size: 18px; line-height: 18px;">
+                            &nbsp;
+                          </td>
+                        </tr>
+                        <tr class="section">
+                          <td style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; border-radius: 3px; overflow: hidden; padding: 0 15px; border: 1px solid #ededed;">
+                            <table border="0" cellpadding="0" cellspacing="0" class="info" style="width: 100%;">
+                              {% set data = {
+                                "01_脚本名称" : mission["script_name"],
+                                "02_访问连结" : mission["link"],
+                                "03_优先级別" : mission["priority"],
+                                "04_开发计划" : mission["schedules"],
+                                "05_最终信息" : mission["comment"]
+                              } %}
+                              <tbody>
+                              {% for k, v in data.items() | sort(attribute='0', reverse=False) %}
+                                {% set key = k.split('_')[1] %}
+                                {% if loop.index == 1 %}
+                                <tr>
+                                  <td style="font-family: 'Microsoft JhengHei'; font-size: 15px; line-height: 1.4; color: #8c8c8c; font-weight: 300; margin: 0; padding: 14px 0;">
+                                    <strong>{{ key }}</strong>
+                                  </td>
+                                  <td style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; font-size: 15px; line-height: 1.4; color: #5C5C5C; font-weight: 400; width: 75%; margin: 0; padding: 14px 0 14px 5px;">
+                                    {{ v }}
+                                  </td>
+                                </tr>
+                                {% elif key == '访问连结' %}
+                                <tr>
+                                  <td style="font-family: 'Microsoft JhengHei'; font-size: 15px; line-height: 1.4; color: #8c8c8c; font-weight: 300; border-top-width: 1px; border-top-color: #ededed; border-top-style: solid; margin: 0; padding: 14px 0;">
+                                    <strong>{{ key }}</strong>
+                                  </td>
+                                  <td style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; font-size: 15px; line-height: 1.4; color: #409eff; font-weight: 400; width: 75%; border-top-width: 1px; border-top-color: #ededed; border-top-style: solid; margin: 0; padding: 14px 0 14px 5px;">
+                                    <a style="text-decoration: none; color: #409eff;" href="{{ v }}">{{ v }} ⧉</a>
+                                  </td>
+                                </tr>
+                                {% elif key == '优先级別' %}
+                                <tr>
+                                  <td style="font-family: 'Microsoft JhengHei'; font-size: 15px; line-height: 1.4; color: #8c8c8c; font-weight: 300; border-top-width: 1px; border-top-color: #ededed; border-top-style: solid; margin: 0; padding: 14px 0;">
+                                    <strong>{{ key }}</strong>
+                                  </td>
+                                  <td style="color: {{ priority_tags[v]['color'] }}; font-family: 'Microsoft JhengHei','Helvetica Neue',Helvetica,Arial,sans-serif; font-size: 15px; line-height: 1.4; font-weight: 400; width: 75%; border-top-width: 1px; border-top-color: #ededed; border-top-style: solid; margin: 0; padding: 14px 0 14px 5px;">
+                                    {{ v }}&nbsp;<span style="color: #909399;">({{ priority_tags[v]['label'] }})</span>
+                                  </td>
+                                </tr>
+                                {% elif key == '开发计划' %}
+                                  {% if mission['schedules'] and mission['schedules'] != {} %}
+                                <tr>
+                                  <td style="font-family: 'Microsoft JhengHei'; font-size: 15px; line-height: 1.4; color: #8c8c8c; font-weight: 300; border-top-width: 1px; border-top-color: #ededed; border-top-style: solid; margin: 0; padding: 14px 0;">
+                                    <strong>{{ key }}</strong>
+                                  </td>
+                                  <td style="font-family: 'Microsoft JhengHei','Helvetica Neue',Helvetica,Arial,sans-serif; font-size: 15px; line-height: 1.4; color: #5C5C5C; font-weight: 400; width: 75%; border-top-width: 1px; border-top-color: #ededed; border-top-style: solid; margin: 0; padding: 14px 0 14px 5px;">
+                                    <table border="0" cellpadding="0" cellspacing="0" class="info" style="width: 100%;">
+                                      {% set headers = {
+                                        "01_开发阶段" : { "width": 50 },
+                                        "02_截止日期" : { "width": 50 }
+                                      } %}
+                                      {% set schedules = {
+                                        1 : { "value": "expected", "label": "期望完成", "color": "#67c23a", "border": "#e1f3d8", "bg": "#f0f9eb" },
+                                        2 : { "value": "development", "label": "验证发布", "color": "#67c23a", "border": "#e1f3d8", "bg": "#f0f9eb" },
+                                        3 : { "value": "validation", "label": "验证截止", "color": "#67c23a", "border": "#e1f3d8", "bg": "#f0f9eb" },
+                                        4 : { "value": "release", "label": "正式发布", "color": "#409eff", "border": "#d9ecff", "bg": "#ecf5ff" }
+                                      } %}
+                                      <thead>
+                                        <tr>
+                                        {% for head, val in headers.items() | sort(attribute='0', reverse=False) %}
+                                          <td width="{{ val['width'] }}%" style="font-family: 'Microsoft JhengHei'; font-size: 15px; line-height: 1.2; color: #8c8c8c; font-weight: 300; border-left-style: solid; border-left-width: 1px; border-left-color: #ededed; margin: 0; padding: 8px 0;">
+                                            <strong>{{ head.split('_')[1] }}</strong>
+                                          </td>
+                                        {% endfor %}
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                      {% for i, raw in schedules.items() | sort(attribute='0', reverse=False) %}
+                                        <tr>
+                                          {% set styles = "font-family: 'Microsoft JhengHei','Helvetica Neue',Helvetica,Arial,sans-serif; font-size: 12px; line-height: 1.4; color: #5C5C5C; font-weight: 400; border-top: 1px solid #ededed; border-left-style: solid; border-left-width: 1px; border-left-color: #ededed; margin: 0; padding: 14px 0 14px 5px;" %}
+                                          <td width="50%" align="left" style="{{ styles }}">
+                                            <span class="muted" style="background-color: {{ raw['bg'] }}; color: {{ raw['color'] }}; border-color: {{ raw['border'] }}; border-radius: 6px; width: 5%; padding: 4px; padding-inline: 4px; line-height: 1.3; overflow: hidden; text-decoration: none;">
+                                              &nbsp;{{ raw['label'] }}&nbsp;
+                                            </span>&nbsp;
+                                            <span class="muted" style="background-color: #f4f4f5; color: #909399; border-color: #e9e9eb; border-radius: 6px; width: 5%; padding: 4px; padding-inline: 4px; line-height: 1.3; overflow: hidden; text-decoration: none;">
+                                              &nbsp;{{ raw['value'] | capitalize }}&nbsp;
+                                            </span>
+                                          </td>
+                                          <td width="50%" style="{{ styles }}">
+                                          {% if raw['value'] in mission['schedules'] %}
+                                            {%- if mission['schedules'][raw['value']] != '' -%}
+                                            <span style="color: #9370db;">📅 {{ mission['schedules'][raw['value']] }}</span>
+                                            {% else %}
+                                            <span style="color: #909399;">📅 待定</span>
+                                            {% endif %}
+                                          {% else %}
+                                            暂无
+                                          {% endif %}
+                                          </td>
+                                        </tr>
+                                      {% endfor %}
+                                      </tbody>
+                                    </table>
+                                  </td>
+                                </tr>
+                                  {% endif %}
+                                {% elif key == '最终信息' %}
+                                <tr>
+                                  <td style="font-family: 'Microsoft JhengHei'; font-size: 15px; line-height: 1.4; color: #8c8c8c; font-weight: 300; border-top-width: 1px; border-top-color: #ededed; border-top-style: solid; margin: 0; padding: 14px 0;">
+                                    <strong>{{ key }}</strong>
+                                  </td>
+                                  <td style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; font-size: 15px; line-height: 1.4; color: #333333; font-weight: 400; width: 75%; border-top-width: 1px; border-top-color: #ededed; border-top-style: solid; margin: 0; padding: 14px 0 14px 5px;">
+                                    <span class="muted" style="color: #333333; text-decoration: none;">
+                                      <table border="0" cellpadding="0" cellspacing="0" class="info" style="width: 100%;">
+                                        <tbody>
+                                          <tr>
+                                            <td style="font-family: 'Microsoft JhengHei'; font-size: 15px; line-height: 1.2; color: #8c8c8c; font-weight: 700; margin: 0; padding: 6px 0 14px 0;">
+                                              用户
+                                            </td>
+                                            <td style="font-family: 'Microsoft JhengHei','Helvetica Neue',Helvetica,Arial,sans-serif; font-size: 15px; line-height: 1.2; color: #333333; font-weight: 400; width: 75%; margin: 0; padding: 6px 0 14px 5px;">
+                                              <span class="muted" style="background-color: #ecf5ff; color: #409eff; border-color: #d9ecff; border-radius: 6px; width: 5%; padding: 4px; padding-inline: 4px; line-height: 1.3; overflow: hidden; text-decoration: none;">
+                                                &nbsp;{{ mission['author'] }}&nbsp;
+                                              </span>
+                                            </td>
+                                          </tr>
+                                          <tr>
+                                            <td style="font-family: 'Microsoft JhengHei'; font-size: 15px; line-height: 1.4; color: #8c8c8c; font-weight: 700; border-top-width: 1px; border-top-color: #ededed; border-top-style: solid; margin: 0; padding: 14px 0;">
+                                              时间
+                                            </td>
+                                            <td style="font-family: 'Microsoft JhengHei','Helvetica Neue',Helvetica,Arial,sans-serif; font-size: 15px; line-height: 1.4; color: #626aef; font-weight: 300; width: 75%; border-top-width: 1px; border-top-color: #ededed; border-top-style: solid; margin: 0; padding: 14px 0 14px 5px;">
+                                              {{ mission['last_date'] | replace('T', ' ') }}
+                                            </td>
+                                          </tr>
+                                          <tr>
+                                            <td style="font-family: 'Microsoft JhengHei'; font-size: 15px; line-height: 1.2; color: #8c8c8c; font-weight: 700; border-top-width: 1px; border-top-color: #ededed; border-top-style: solid; margin: 0; padding: 14px 0 8px 0;">
+                                              留言
+                                            </td>
+                                            {% if not v['comment'] or v['comment'].lower() == 'none' %}
+                                            <td style="font-family: 'Microsoft JhengHei','Helvetica Neue',Helvetica,Arial,sans-serif; font-size: 14px; line-height: 1.2; color: #909399; font-weight: 400; width: 75%; border-top-width: 1px; border-top-color: #ededed; border-top-style: solid; margin: 0; padding: 14px 0 6px 5px;">
+                                              没有对此多说什么…
+                                            {% else %}
+                                            <td style="font-family: 'Microsoft JhengHei','Helvetica Neue',Helvetica,Arial,sans-serif; font-size: 14px; line-height: 1.2; color: #909399; font-weight: 400; width: 75%; border-top-width: 1px; border-top-color: #ededed; border-top-style: solid; margin: 0; padding: 14px 0 6px 5px; text-align: left;">
+                                              {% autoescape false %}
+                                                {{ v['comment'] | replace('\n', '<br/>') }}
+                                              {% endautoescape %}
+                                            {% endif %}
+                                            </td>
+                                          </tr>
+                                        </tbody>
+                                      </table>
+                                    </span>
+                                  </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                  <td style="font-family: 'Microsoft JhengHei'; font-size: 15px; line-height: 1.4; color: #8c8c8c; font-weight: 300; border-top-width: 1px; border-top-color: #ededed; border-top-style: solid; margin: 0; padding: 14px 0;">
+                                    <strong>{{ key }}</strong>
+                                  </td>
+                                  <td style="font-family: 'Microsoft JhengHei','Helvetica Neue',Helvetica,Arial,sans-serif; font-size: 15px; line-height: 1.4; color: #333333; font-weight: 400; width: 75%; border-top-width: 1px; border-top-color: #ededed; border-top-style: solid; margin: 0; padding: 14px 0 14px 5px;">
+                                    <span class="muted" style="color: #333333; text-decoration: none;">
+                                      {{ v }}
+                                    </span>
+                                  </td>
+                                </tr>
+                                {% endif %}
+                              {% endfor %}
+                              </tbody>
+                            </table>
+                          </td>
+                        </tr>
+                        <tr class="spacer">
+                          <td style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; height: 18px; font-size: 18px; line-height: 18px;">
+                            &nbsp;
+                          </td>
+                        </tr>
+                        <tr class="section">
+                          <td style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; line-height: 1.4; overflow: hidden; padding: 0 15px;" align="center">
+                            <table border="0" cellpadding="0" cellspacing="0" class="img" style="border-collapse: collapse; width: 100%;">
+                              <tbody>
+                                <tr style="width: 100%;">
+                                  <td style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; font-size: 15px; line-height: 1.4; color: #8c8c8c; font-weight: 300; margin: 0; padding: 14px 0;" align="center">
+                                    Please be informed that notification, Thank you!❤️
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </td>
+        </tr>
+        <tr class="footer">
+          <td style="font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 13px; line-height: 1.6; color: #5c5c5c; padding: 25px 0;">
+            <img alt="ARES G2" height="30" width="100" src="cid:logo_gitlab" style="display: block; margin: 0 auto 1em;">
+            <div>
+              IPT/SIT <a class="mng-notif-link" href="{{ ares_url }}" style="color: #3777b0; text-decoration: none;">ARES G2 © 2022</a> · <a class="help-link" href="http://ipt-gitlab.ies.inventec:4000" style="color: #3777b0; text-decoration: none;">Help📙</a>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="footer-message" style="font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 13px; line-height: 1.6; color: #5c5c5c; padding: 25px 0;">
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </body>
+</html>

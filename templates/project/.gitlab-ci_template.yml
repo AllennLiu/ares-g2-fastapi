@@ -1,0 +1,126 @@
+variables:
+  sut_ip: "172.17.0.49"
+  sut_mac: "00:8c:fa:ef:98:ec"
+  reference: "reference.msg"
+  script_cmd: "'bash *.sh -h 2> /dev/null || true; python *.py -h 2> /dev/null || true'"
+
+.normal: &normal
+  before_script:
+    - chmod 755 *.sh *.py || true
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" "$CI_REGISTRY" --password-stdin
+  after_script:
+    - docker logout
+  tags:
+    - IPT-K8S-NODE4
+  retry:
+    max: 2
+    when: runner_system_failure
+
+.tool: &tool
+  before_script:
+    - apk add --update curl git jq python 2> /dev/null && rm -rf /var/cache/apk/* || true
+    - git clone $TOOLS_PROJECT
+  tags:
+    - IPT-K8S-NODE4
+  retry:
+    max: 2
+    when: runner_system_failure
+
+stages:
+  - lintcheck
+  - runtest
+  - validation
+  - release
+  - cleanup
+
+codeReview:Shell:
+  <<: *normal
+  stage: lintcheck
+  image: registry.ipt-gitlab:8081/sit-develop-tool/shellcheck:$SHCHECK_VER
+  before_script:
+    - echo "Starting Shell coding style verification."
+  script:
+    - find . -iname "*.sh" | xargs shellcheck -s bash --color=always || true
+  after_script:
+    - echo "Finish coding style verification."
+  tags:
+    - IPT-K8S-NODE4
+  except:
+    - triggers
+
+codeReview:Python:
+  <<: *normal
+  stage: lintcheck
+  image: registry.ipt-gitlab:8081/sit-develop-tool/sitpythonlinter:$PYLINT_VER
+  before_script:
+    - echo "Starting Python coding style verification."
+  script:
+    - find . -iname '*.py' | xargs pylint --rcfile=/home/app/pylintrc || true
+  after_script:
+    - echo "Finish coding style verification."
+  tags:
+    - IPT-K8S-NODE4
+  except:
+    - triggers
+
+runTest:
+  <<: *normal
+  stage: runtest
+  image: registry.ipt-gitlab:8081/sit-develop-tool/tool-ansible:$ANSIBLE_VER
+  before_script:
+    - git clone $TOOLS_PROJECT
+    - sh tool-gitlab-deployment/pipeline_test.sh --before
+  script:
+    - sh tool-gitlab-deployment/pipeline_script.sh
+  after_script:
+    - sh tool-gitlab-deployment/pipeline_test.sh --after
+  artifacts:
+    name: ${CI_PROJECT_NAME}-Reports
+    expire_in: 4d
+    when: always
+    paths:
+      - ${PWD}/*.*.*.*-Report
+  tags:
+    - IPT-K8S-NODE4
+  when: always
+  allow_failure: true
+
+Validation:
+  <<: *tool
+  stage: validation
+  image: registry.ipt-gitlab:8081/sit-develop-tool/tool-ansible:$ANSIBLE_VER
+  script:
+    - sh tool-gitlab-deployment/pipeline_validation.sh
+  tags:
+    - IPT-K8S-NODE4
+  only:
+    - master
+    - branches
+    - triggers
+  except:
+    - tags
+
+Release:
+  <<: *tool
+  stage: release
+  image: registry.ipt-gitlab:8081/sit-develop-tool/tool-gitlab-deployment/docker:18
+  script:
+    - sh tool-gitlab-deployment/pipeline_mail.sh
+  tags:
+    - IPT-K8S-NODE4
+  only:
+    - tags
+  except:
+    - branches
+    - triggers
+
+cleanEnv:
+  <<: *tool
+  stage: cleanup
+  image: registry.ipt-gitlab:8081/sit-develop-tool/tool-gitlab-deployment/docker:18
+  script:
+    - sh tool-gitlab-deployment/pipeline_clean.sh
+  tags:
+    - IPT-K8S-NODE4
+  except:
+    - triggers

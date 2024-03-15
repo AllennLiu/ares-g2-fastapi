@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns:m="http://schemas.microsoft.com/office/2004/12/omml" xmlns="http://www.w3.org/TR/REC-html40">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta name="Generator" content="Microsoft Word 15 (filtered medium)">
+    </head>
+    {% set checkpoint = '0/0' %}
+    {% set status_color_maps = { "G": "#00B050", "R": "red", "Y": "yellow", "C": "#00B0F0" } %}
+    <body lang="ZH-TW" link="#0563C1" vlink="#954F72" style="text-justify-trim:punctuation;font-family:Microsoft JhengHei">
+        <div class="WordSection1">
+            <p class="MsoNormal">
+                <b>
+                    <span lang="EN-US" style="font-size:16.0pt;font-family:&quot;微軟正黑體&quot;,sans-serif">
+                        TA Weekly Status - {{ date }}
+                        <o:p></o:p>
+                    </span>
+                </b>
+            </p>
+            <table class="MsoNormalTable" border="0" cellspacing="0" cellpadding="0" width="1041" style="width:781.0pt;border-collapse:collapse;font-family:Microsoft JhengHei">
+                <tbody>
+                    <tr style="height:19.15pt">
+                        <td width="60" rowspan="2" style="width:45.0pt;border:solid black 1.0pt;background:#C00000;padding:.55pt .55pt 0cm .55pt;height:19.15pt">
+                            <p class="MsoNormal" align="center" style="text-align:center">
+                                <b><span lang="EN-US" style="color:windowtext"><span style="color:white">Priority</span></span></b>
+                                <span lang="EN-US" style="color:windowtext">
+                                    <span style="color:white">
+                                        <o:p></o:p>
+                                    </span>
+                                </span>
+                            </p>
+                        </td>
+                        <td width="211" rowspan="2" style="width:158.0pt;border:solid black 1.0pt;border-left:none;background:#C00000;padding:.55pt .55pt 0cm .55pt;height:19.15pt">
+                            <p class="MsoNormal" align="center" style="text-align:center">
+                                <b><span lang="EN-US" style="color:windowtext"><span style="color:white">Test Item</span></span></b>
+                                <span lang="EN-US" style="color:windowtext">
+                                    <span style="color:white">
+                                        <o:p></o:p>
+                                    </span>
+                                </span>
+                            </p>
+                        </td>
+                        <td width="105" rowspan="2" style="width:79.0pt;border:solid black 1.0pt;border-left:none;background:#C00000;padding:.55pt .55pt 0cm .55pt;height:19.15pt">
+                            <p class="MsoNormal" align="center" style="text-align:center">
+                                <b><span lang="EN-US" style="color:windowtext"><span style="color:white">Schedule</span></span></b>
+                                <span lang="EN-US" style="color:windowtext">
+                                    <span style="color:white">
+                                        <o:p></o:p>
+                                    </span>
+                                </span>
+                            </p>
+                        </td>
+                        <td width="499" rowspan="2" style="width:374.0pt;border:solid black 1.0pt;border-left:none;background:#C00000;padding:.55pt .55pt 0cm .55pt;height:19.15pt">
+                            <p class="MsoNormal" align="center" style="text-align:center">
+                                <b><span lang="EN-US" style="color:windowtext"><span style="color:white">Top 3 Executive Messages, Issues, and
+                                <span style="color:windowtext">/ or&nbsp; Risks</span></span></span></b>
+                                <span lang="EN-US" style="color:windowtext">
+                                    <span style="color:white">
+                                        <o:p></o:p>
+                                    </span>
+                                </span>
+                            </p>
+                        </td>
+                        <td width="167" colspan="2" style="width:125.0pt;border:solid black 1.0pt;border-left:none;background:#C00000;padding:.55pt .55pt 0cm .55pt;height:19.15pt">
+                            <p class="MsoNormal" align="center" style="text-align:center">
+                                <b><span lang="EN-US" style="color:windowtext"><span style="color:white">Status</span></span></b>
+                                <span lang="EN-US" style="color:windowtext">
+                                    <span style="color:white">
+                                        <o:p></o:p>
+                                    </span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr style="height:18.95pt">
+                        <td width="83" style="width:62.0pt;border-top:none;border-left:none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;background:#C00000;padding:.55pt .55pt 0cm .55pt;height:18.95pt">
+                            <p class="MsoNormal" align="center" style="text-align:center">
+                                <b><span lang="EN-US" style="color:windowtext"><span style="color:white">Last Week</span></span></b>
+                                <span lang="EN-US" style="color:windowtext">
+                                    <span style="color:white">
+                                        <o:p></o:p>
+                                    </span>
+                                </span>
+                            </p>
+                        </td>
+                        <td width="83" style="width:62.0pt;border-top:none;border-left:none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;background:#C00000;padding:.55pt .55pt 0cm .55pt;height:18.95pt">
+                            <p class="MsoNormal" align="center" style="text-align:center">
+                                <b><span lang="EN-US" style="color:windowtext"><span style="color:white">This Week</span></span></b>
+                                <span lang="EN-US" style="color:windowtext">
+                                    <span style="color:white">
+                                        <o:p></o:p>
+                                    </span>
+                                </span>
+                            </p>
+                        </td>
+                    </tr>
+                    {% for e in reports['tasks'] %}
+                    <tr style="height:134.05pt">
+                        <td width="60" style="width:45.0pt;border:solid black 1.0pt;border-top:none;background:#F4A6A2;padding:.55pt .55pt 0cm .55pt;height:134.05pt">
+                            <p class="MsoNormal" align="center" style="text-align:center">
+                                <span lang="EN-US">
+                                    {{ e['priority'].replace('P', '') }}
+                                    <o:p></o:p>
+                                </span>
+                            </p>
+                        </td>
+                        <td width="211" style="width:158.0pt;border-top:none;border-left:none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;background:#F4A6A2;padding:.55pt .55pt 0cm .55pt;height:134.05pt">
+                            <p class="MsoNormal">
+                                <span lang="EN-US">
+                                    {{ e['script_name'] }}
+                                </span>
+                            </p>
+                            <ul style="margin-top:0cm">
+                            {% for k, v in e['schedules'].items() | sort(attribute='1', reverse=False) %}
+                                {% if k != 'expected' %}
+                                <li>
+                                    <span lang="EN-US">
+                                        {{ k[0].upper() + k[1:] }}<br>
+                                        ({{ e['plan'][k + '_start'] }}~{{ e['plan'][k + '_end'] }})
+                                    </span>
+                                </li>
+                                {% endif %}
+                            {% endfor %}
+                            </ul>
+                        </td>
+                        <td width="105" style="width:79.0pt;border-top:none;border-left:none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;background:#F4A6A2;padding:.55pt .55pt 0cm .55pt;height:134.05pt">
+                            <p class="MsoNormal" align="center" style="text-align:center">
+                                <b><span lang="EN-US">{{ e['plan']['schedule_start'] }}~{{ e['plan']['schedule_end'] }}</span></b>
+                            </p>
+                        </td>
+                        <td width="499" style="width:374.0pt;border-top:none;border-left:none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;background:#F4A6A2;padding:.55pt .55pt 0cm .55pt;height:134.05pt">
+                            <ol style="margin-top:0cm" start="1" type="1">
+                                <li class="MsoNormal" style="mso-list:l{{ loop.index }} level1 lfo6">
+                                    <b><span style="font-family:&quot;微軟正黑體&quot;,serif">{{ e['req_desc'] }}</span></b>
+                                </li>
+                                {% if e['raw']['progress'] | int == 50 %}
+                                <li class="MsoNormal" style="mso-list:l{{ loop.index }} level1 lfo6">
+                                    <span lang="EN-US">{{ e['plan']['development_end'] }} </span>
+                                    <span style="font-family:&quot;微軟正黑體&quot;,serif">已發布驗證版</span> <font color="blue">v{{ e['raw']['script_version'] }}</font><span style="font-family:&quot;微軟正黑體&quot;,serif">。</span>
+                                </li>
+                                {% elif e['raw']['progress'] | int >= 90 %}
+                                <li class="MsoNormal" style="mso-list:l{{ loop.index }} level1 lfo6">
+                                    <span lang="EN-US">{{ e['plan']['release_end'] }} </span>
+                                    <span style="font-family:&quot;微軟正黑體&quot;,serif">已發布正式版</span> <font color="blue">v{{ e['raw']['script_version'] }}</font><span style="font-family:&quot;微軟正黑體&quot;,serif">。</span>
+                                </li>
+                                {% endif %}
+                                {% if e['raw']['progress'] | int >= 20 %}
+                                    {% if e['raw']['progress'] | int == 20 %}
+                                        {% set checkpoint = e['plan']['schedule_start'] %}
+                                <li class="MsoNormal" style="mso-list:l{{ loop.index }} level1 lfo6">
+                                    <span lang="EN-US">{{ e['plan']['schedule_start'] }}</span>
+                                    <span style="font-family:&quot;微軟正黑體&quot;,serif">待 LTE 評估計畫是否影響測試時程。</span>
+                                </li>
+                                    {% elif e['raw']['progress'] | int == 40 %}
+                                        {% set checkpoint = e['plan']['development_end'] %}
+                                <li class="MsoNormal" style="mso-list:l{{ loop.index }} level1 lfo6">
+                                    <span lang="EN-US">{{ e['plan']['development_end'] }}</span>
+                                    <span style="font-family:&quot;微軟正黑體&quot;,serif">將發布驗證版</span> <font color="blue">v{{ e['raw']['script_version'] }}</font><span style="font-family:&quot;微軟正黑體&quot;,serif">。</span>
+                                </li>
+                                    {% elif e['raw']['progress'] | int == 50 %}
+                                        {% set checkpoint = e['plan']['validation_end'] %}
+                                <li class="MsoNormal" style="mso-list:l{{ loop.index }} level1 lfo6">
+                                    <span lang="EN-US">{{ e['plan']['validation_end'] }} </span>
+                                    <span style="font-family:&quot;微軟正黑體&quot;,serif">確認驗證結果。</span>
+                                </li>
+                                    {% elif e['raw']['progress'] | int in [ 75, 80 ] %}
+                                        {% set checkpoint = e['plan']['release_end'] %}
+                                <li class="MsoNormal" style="mso-list:l{{ loop.index }} level1 lfo6">
+                                    <span lang="EN-US">{{ e['plan']['release_end'] }} </span>
+                                    <span style="font-family:&quot;微軟正黑體&quot;,serif">將發布正式版</span> <font color="blue">v{{ e['raw']['script_version'] }}</font><span style="font-family:&quot;微軟正黑體&quot;,serif">。</span>
+                                </li>
+                                    {% endif %}
+                                {% endif %}
+                            </ol>
+                            {% if e['raw']['progress'] | int != 100 %}
+                            <p class="MsoNormal">
+                                <span lang="EN-US">
+                                    CheckPoint: {{ checkpoint }}
+                                </span>
+                            </p>
+                            {% endif %}
+                            <p class="MsoNormal">
+                                <span lang="EN-US">
+                                    Progress: {{ e['raw']['progress'] }}%
+                                </span>
+                            </p>
+                            <p class="MsoNormal">
+                                <span lang="EN-US">
+                                    Owner:&nbsp; {{ e['raw']['developer'] }}/{{ e['raw']['te_name'].replace(';', '/') }}
+                                </span>
+                            </p>
+                        </td>
+                        {% if e['status_color']['last'] == 'W' %}
+                        <td width="83" style="width:62.0pt;border-top:none;border-left:none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;background:white;padding:.55pt .55pt 0cm .55pt;height:137.7pt"></td>
+                        {% else %}
+                        <td width="83" style="width:62.0pt;border-top:none;border-left:none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;background:{{ status_color_maps[e['status_color']['last']] }};padding:.55pt .55pt 0cm .55pt;height:137.7pt">
+                            <p class="MsoNormal" align="center" style="text-align:center">
+                                <span lang="EN-US">
+                                    {{ e['status_color']['last'] }}
+                                </span>
+                            </p>
+                        </td>
+                        {% endif %}
+                        {% if e['status_color']['this'] == 'W' %}
+                        <td width="83" style="width:62.0pt;border-top:none;border-left:none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;background:white;padding:.55pt .55pt 0cm .55pt;height:137.7pt"></td>
+                        {% else %}
+                        <td width="83" style="width:62.0pt;border-top:none;border-left:none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;background:{{ status_color_maps[e['status_color']['this']] }};padding:.55pt .55pt 0cm .55pt;height:137.7pt">
+                            <p class="MsoNormal" align="center" style="text-align:center">
+                                <span lang="EN-US">
+                                    {{ e['status_color']['this'] }}
+                                </span>
+                            </p>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <p class="MsoNormal">
+                <span lang="EN-US">
+                    <o:p>&nbsp;</o:p>
+                </span>
+            </p>
+            {% if not reports['tasks'] %}
+            <span style="font-family:&quot;微軟正黑體&quot;,serif">目前尚未收到任何腳本開發需求。</span>
+            {% endif %}
+        </div>
+        <br>
+        <hr>
+    </body>
+</html>

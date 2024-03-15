@@ -1,0 +1,19 @@
+{
+    "service": {
+        "fastapi": "ares-g2-fastapi",
+        "ares_g2": "ares-g2",
+        "sms": "ares-script-mgmt"
+    },
+    "domain": {
+        "prod": "cloudnative.ies.inventec",
+        "stag": "cloud.sit.ipt.inventec"
+    },
+    "redis": {
+        "prod": "10.99.104.250:6379",
+        "stag": "redis-cluster-proxy.cloud.sit.ipt.inventec:17777"
+    },
+    "mongodb": {
+        "prod": "10.99.104.250:8156",
+        "stag": "mongo-0.mongo-hs.mongodb,mongo-1.mongo-hs.mongodb,mongo-2.mongo-hs.mongodb/?replicaSet=rs0"
+    }
+}

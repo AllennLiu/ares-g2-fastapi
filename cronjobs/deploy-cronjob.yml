@@ -1,0 +1,416 @@
+# Example of cronjob definition:
+#            .---------------- minute (0 - 59)
+#            |  .------------- hour (0 - 23)
+#            |  |  .---------- day of month (1 - 31)
+#            |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...
+#            |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7),
+#            |  |  |  |  |     OR sun,mon,tue,wed,thu,fri,sat
+# schedule: "*  *  *  *  *"
+
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: ares-g2-cron-resigned-clean
+  namespace: kube-ops
+spec:
+  schedule: "0 7 * * *"
+  failedJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: ares-g2-cron-resigned-clean
+              image: <CI_REGISTRY_IMAGE>
+              env:
+                - name: FASTAPI_ENV
+                  value: "prod"
+              args:
+                - /bin/sh
+                - -c
+                - "cd app/schedules && python3 cleaner.py -c"
+              volumeMounts:
+                - name: pyapp-config
+                  mountPath: /usr/src/app/settings.json
+                  subPath: settings.json
+          volumes:
+            - name: pyapp-config
+              configMap:
+                name: pyapp-config
+          restartPolicy: OnFailure
+          imagePullSecrets:
+            - name: gitlab-registry
+          terminationGracePeriodSeconds: 20
+          tolerations:
+            - operator: "Exists"
+
+---
+
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: ares-g2-cron-script-list
+  namespace: kube-ops
+spec:
+  schedule: "*/8 * * * *"
+  failedJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: ares-g2-cron-script-list
+              image: <CI_REGISTRY_IMAGE>
+              env:
+                - name: FASTAPI_ENV
+                  value: "prod"
+              args:
+                - /bin/sh
+                - -c
+                - "cd app/schedules && python3 scripts.py --update-list"
+              volumeMounts:
+                - name: pyapp-config
+                  mountPath: /usr/src/app/settings.json
+                  subPath: settings.json
+          volumes:
+            - name: pyapp-config
+              configMap:
+                name: pyapp-config
+          restartPolicy: OnFailure
+          imagePullSecrets:
+            - name: gitlab-registry
+          terminationGracePeriodSeconds: 20
+          tolerations:
+            - operator: "Exists"
+
+---
+
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: ares-g2-cron-script-usage
+  namespace: kube-ops
+spec:
+  schedule: "*/9 * * * *"
+  failedJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: ares-g2-cron-script-usage
+              image: <CI_REGISTRY_IMAGE>
+              env:
+                - name: FASTAPI_ENV
+                  value: "prod"
+              args:
+                - /bin/sh
+                - -c
+                - "cd app/schedules && python3 scripts.py --update-usage"
+              volumeMounts:
+                - name: pyapp-config
+                  mountPath: /usr/src/app/settings.json
+                  subPath: settings.json
+          volumes:
+            - name: pyapp-config
+              configMap:
+                name: pyapp-config
+          restartPolicy: OnFailure
+          imagePullSecrets:
+            - name: gitlab-registry
+          terminationGracePeriodSeconds: 20
+          tolerations:
+            - operator: "Exists"
+
+---
+
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: ares-g2-cron-script-downloads
+  namespace: kube-ops
+spec:
+  schedule: "*/10 * * * *"
+  failedJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: ares-g2-cron-script-downloads
+              image: <CI_REGISTRY_IMAGE>
+              env:
+                - name: FASTAPI_ENV
+                  value: "prod"
+              args:
+                - /bin/sh
+                - -c
+                - "cd app/schedules && python3 scripts.py --update-download"
+              volumeMounts:
+                - name: pyapp-config
+                  mountPath: /usr/src/app/settings.json
+                  subPath: settings.json
+          volumes:
+            - name: pyapp-config
+              configMap:
+                name: pyapp-config
+          restartPolicy: OnFailure
+          imagePullSecrets:
+            - name: gitlab-registry
+          terminationGracePeriodSeconds: 20
+          tolerations:
+            - operator: "Exists"
+
+---
+
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: ares-g2-cron-caching-bkms
+  namespace: kube-ops
+spec:
+  schedule: "*/3 * * * *"
+  failedJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: ares-g2-cron-caching-bkms
+              image: <CI_REGISTRY_IMAGE>
+              env:
+                - name: FASTAPI_ENV
+                  value: "prod"
+              args:
+                - /bin/sh
+                - -c
+                - "cd app/schedules && python3 caches.py"
+              volumeMounts:
+                - name: pyapp-config
+                  mountPath: /usr/src/app/settings.json
+                  subPath: settings.json
+          volumes:
+            - name: pyapp-config
+              configMap:
+                name: pyapp-config
+          restartPolicy: OnFailure
+          imagePullSecrets:
+            - name: gitlab-registry
+          terminationGracePeriodSeconds: 20
+          tolerations:
+            - operator: "Exists"
+
+---
+
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: ares-g2-cron-mission-sync
+  namespace: kube-ops
+spec:
+  schedule: "*/6 * * * *"
+  failedJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: ares-g2-cron-mission-sync
+              image: <CI_REGISTRY_IMAGE>
+              env:
+                - name: FASTAPI_ENV
+                  value: "prod"
+              args:
+                - /bin/sh
+                - -c
+                - "cd app/schedules && python3 mission.py -s"
+              volumeMounts:
+                - name: pyapp-config
+                  mountPath: /usr/src/app/settings.json
+                  subPath: settings.json
+          volumes:
+            - name: pyapp-config
+              configMap:
+                name: pyapp-config
+          restartPolicy: OnFailure
+          imagePullSecrets:
+            - name: gitlab-registry
+          terminationGracePeriodSeconds: 20
+          tolerations:
+            - operator: "Exists"
+
+# ---
+
+# apiVersion: batch/v1beta1
+# kind: CronJob
+# metadata:
+#   name: ares-g2-cron-mission-remind
+#   namespace: kube-ops
+# spec:
+#   schedule: "0 8 * * *"
+#   failedJobsHistoryLimit: 1
+#   successfulJobsHistoryLimit: 3
+#   concurrencyPolicy: Forbid
+#   jobTemplate:
+#     spec:
+#       template:
+#         spec:
+#           containers:
+#             - name: ares-g2-cron-mission-remind
+#               image: <CI_REGISTRY_IMAGE>
+#               env:
+#                 - name: FASTAPI_ENV
+#                   value: "prod"
+#               args:
+#                 - /bin/sh
+#                 - -c
+#                 - "cd app/schedules && python3 mission.py -r"
+#               volumeMounts:
+#                 - name: pyapp-config
+#                   mountPath: /usr/src/app/settings.json
+#                   subPath: settings.json
+#           volumes:
+#             - name: pyapp-config
+#               configMap:
+#                 name: pyapp-config
+#           restartPolicy: OnFailure
+#           imagePullSecrets:
+#             - name: gitlab-registry
+#           terminationGracePeriodSeconds: 20
+#           tolerations:
+#             - operator: "Exists"
+
+# ---
+
+# apiVersion: batch/v1beta1
+# kind: CronJob
+# metadata:
+#   name: ares-g2-cron-weekly-report
+#   namespace: kube-ops
+# spec:
+#   schedule: "8 0 * * 2"
+#   failedJobsHistoryLimit: 1
+#   successfulJobsHistoryLimit: 3
+#   concurrencyPolicy: Forbid
+#   jobTemplate:
+#     spec:
+#       template:
+#         spec:
+#           containers:
+#             - name: ares-g2-cron-weekly-report
+#               image: <CI_REGISTRY_IMAGE>
+#               env:
+#                 - name: FASTAPI_ENV
+#                   value: "prod"
+#               args:
+#                 - /bin/sh
+#                 - -c
+#                 - "cd app/schedules && python3 mission.py -w"
+#               volumeMounts:
+#                 - name: pyapp-config
+#                   mountPath: /usr/src/app/settings.json
+#                   subPath: settings.json
+#           volumes:
+#             - name: pyapp-config
+#               configMap:
+#                 name: pyapp-config
+#           restartPolicy: OnFailure
+#           imagePullSecrets:
+#             - name: gitlab-registry
+#           terminationGracePeriodSeconds: 20
+#           tolerations:
+#             - operator: "Exists"
+
+---
+
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: ares-g2-cron-return-rate
+  namespace: kube-ops
+spec:
+  schedule: "*/5 * * * *"
+  failedJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: ares-g2-cron-return-rate
+              image: <CI_REGISTRY_IMAGE>
+              env:
+                - name: FASTAPI_ENV
+                  value: "prod"
+              args:
+                - /bin/sh
+                - -c
+                - "cd app/schedules && python3 reports.py -u"
+              volumeMounts:
+                - name: pyapp-config
+                  mountPath: /usr/src/app/settings.json
+                  subPath: settings.json
+          volumes:
+            - name: pyapp-config
+              configMap:
+                name: pyapp-config
+          restartPolicy: OnFailure
+          imagePullSecrets:
+            - name: gitlab-registry
+          terminationGracePeriodSeconds: 20
+          tolerations:
+            - operator: "Exists"
+
+---
+
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: ares-g2-cron-caching-summary
+  namespace: kube-ops
+spec:
+  schedule: "*/30 * * * *"
+  failedJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: ares-g2-cron-caching-summary
+              image: <CI_REGISTRY_IMAGE>
+              env:
+                - name: FASTAPI_ENV
+                  value: "prod"
+              args:
+                - /bin/sh
+                - -c
+                - "cd app/schedules && python3 reports.py -s"
+              volumeMounts:
+                - name: pyapp-config
+                  mountPath: /usr/src/app/settings.json
+                  subPath: settings.json
+          volumes:
+            - name: pyapp-config
+              configMap:
+                name: pyapp-config
+          restartPolicy: OnFailure
+          imagePullSecrets:
+            - name: gitlab-registry
+          terminationGracePeriodSeconds: 20
+          tolerations:
+            - operator: "Exists"
