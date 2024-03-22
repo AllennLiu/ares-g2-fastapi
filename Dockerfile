@@ -29,7 +29,8 @@ RUN apt-get update && \
         unixodbc unixodbc-dev tesseract-ocr
 
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir openai==1.3.7 || true
 
 RUN echo 'alias vi="vim"' >> ~/.bashrc
 

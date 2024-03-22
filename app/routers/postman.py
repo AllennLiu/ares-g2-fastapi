@@ -4,6 +4,7 @@
 import sys
 sys.path.append('library')
 
+from routers.authorize import User, DEPENDS_USER
 from library.params import validate_json, json_parse
 from library.mailer import EMAIL_TEMPLATE, EMAIL_TEMPLATE_DIR, FastMail, MessageSchema, EmailManager
 
@@ -56,7 +57,8 @@ async def send_email_with_html_template(
     template  : Annotated[str, Form(..., description='`HTML Only`', regex='^\w+\.html$')] = 'test.html',
     payload   : Annotated[str, FORM_PAYLOADS] = FORM_PAYLOADS,
     priority  : Annotated[str, FOMR_PRIORITY] = FOMR_PRIORITY,
-    attachment: Annotated[UploadFile, File(None)] = None) -> JSONResponse:
+    attachment: Annotated[UploadFile, File(None)] = None,
+    user      : Annotated[User, DEPENDS_USER] = DEPENDS_USER) -> JSONResponse:
     conf = postman.configure(request.base_url)
     msg = EmailManager.schema(
         subject,
@@ -71,8 +73,7 @@ async def send_email_with_html_template(
     payloads = json_parse(payload)
     try:
         content = EMAIL_TEMPLATE_DIR.TemplateResponse(
-            template, context={ "request": request, **payloads }
-        )
+            template, context={ "request": request, **payloads, "user": user })
     except TemplateNotFound as err:
         raise HTTPException(status_code=404, detail=f'{err} Not Found') from err
     msg.html = content.template.render(payloads)

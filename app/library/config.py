@@ -36,7 +36,8 @@ class Settings(BaseSettings):
     env: str = FASTAPI_ENV
     servers: List[Dict[str, str]] = [
         {
-            "url"        : f"http://{APP_CONFIG['service']['fastapi']}.{APP_CONFIG['domain']['stag']}",
+            # "url"        : f"http://{APP_CONFIG['service']['fastapi']}.{APP_CONFIG['domain']['stag']}",
+            "url"        : f"http://10.99.104.251:8787",
             "description": "Staging environment"
         },
         {
@@ -55,8 +56,9 @@ class TemplatePath(BaseSettings):
 class AzureOpenAI(BaseSettings):
     openai_api_type       : str = 'azure'
     openai_api_version    : str = '2023-05-15'
-    azure_openai_endpoint : str = 'https://pvg-azure-openai-uk-south.openai.azure.com'
-    azure_openai_api_key  : str = '8d1daadc333e42b18e26d861588cfd43'
+    openai_api_model      : str = APP_CONFIG["openai"]["model"]
+    azure_openai_endpoint : str = APP_CONFIG["openai"]["endpoint"]
+    azure_openai_api_key  : str = APP_CONFIG["openai"]["api_key"]
 
 @lru_cache
 def get_settings() -> Settings:

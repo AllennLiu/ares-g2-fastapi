@@ -15,5 +15,10 @@
     "mongodb": {
         "prod": "10.99.104.250:8156",
         "stag": "mongo-0.mongo-hs.mongodb,mongo-1.mongo-hs.mongodb,mongo-2.mongo-hs.mongodb/?replicaSet=rs0"
+    },
+    "openai": {
+        "endpoint": "https://pvg-azure-openai-uk-south.openai.azure.com",
+        "model": "gpt-4-turbo",
+        "api_key": "8d1daadc333e42b18e26d861588cfd43"
     }
 }
