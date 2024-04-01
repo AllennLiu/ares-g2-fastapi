@@ -13,10 +13,8 @@ from argparse import ArgumentParser, RawTextHelpFormatter, Namespace
 
 global REDIS_URL, REDIS_DB_INDEX
 
-REDIS_URL = settings.app_config["redis"]["stag"]
-if settings.env == 'prod':
-    REDIS_URL = settings.app_config["redis"]["prod"]
-REDIS_DB_INDEX = 0
+REDIS_URL: str = settings.app_config(f'REDIS_{settings.env.upper()}')
+REDIS_DB_INDEX: int = 0
 
 class RedisContextManager:
     """A class used to handle Redis cache.
@@ -67,16 +65,16 @@ class RedisContextManager:
         self.decode_responses = decode_responses
 
     def __enter__(self) -> Redis:
-        pool = ConnectionPool(
+        pool: ConnectionPool = ConnectionPool(
             host=self.host,
             port=self.port,
             db=self.db,
             decode_responses=self.decode_responses
         )
-        self.rd = Redis(connection_pool=pool)
+        self.rd: Redis = Redis(connection_pool=pool)
         return self.rd
 
-    def __exit__(self, type: Any, value: Any, traceback: Any) -> None:
+    def __exit__(self, type: Any, value: Any, traceback: Any) -> Union[None, AssertionError]:
         if self.rd is not None:
             self.rd.connection_pool.disconnect()
             self.rd.close()

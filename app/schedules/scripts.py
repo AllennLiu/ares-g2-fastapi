@@ -100,7 +100,7 @@ def sched_save_script_list(
 def sched_update_script_list(db_name: str = MissionDB.gitlab
     ) -> tuple[List[Dict[str, Any]], List[Project]]:
     resp: List[Dict[str, Any]] = []
-    script_projects = getProjects(**ProjectScriptRule().dict())
+    script_projects = getProjects(**dict(ProjectScriptRule()))
     data = sched_get_db_data(db_name)
     for p in script_projects:
         try:
@@ -146,7 +146,7 @@ def sched_update_script_analysis(items: List[dict] = []) -> Dict[str, Any]:
             # update project data with base model to not exists script
             else:
                 r.hset(name, k, dumps({
-                    **Analyzer().dict(),
+                    **dict(Analyzer()),
                     "id"            : script_data[k].get('id'),
                     "uuid"          : str(uuid4()),
                     "rev"           : script_data[k].get('rev'),
@@ -159,23 +159,23 @@ def sched_update_script_analysis(items: List[dict] = []) -> Dict[str, Any]:
 
 def sched_update_script_settings(
     items: List[Dict[str, Any]], projects: List[Project]) -> List[str]:
-    settings = sched_get_db_data(AutomationDB.settings)
+    automation_settings = sched_get_db_data(AutomationDB.settings)
     updated_scripts: List[Dict[str, Any]] = []
     with RedisContextManager() as r:
         for e in items:
-            if e.get('script_name') in settings: continue
+            if e.get('script_name') in automation_settings: continue
             project = find(lambda x: x.name == e["script_name"], projects)
             data = ScriptConfig(uuid=str(uuid4()), kill_processes=[
                 e["name"] for e in project.repository_tree(ref='master')
                 if e.get('type') == 'blob'
                 and search('\.(py|sh|js)$', e.get('name'))
             ])
-            r.hset(AutomationDB.settings, e["script_name"], dumps(data.dict()))
+            r.hset(AutomationDB.settings, e["script_name"], dumps(dict(data)))
             updated_scripts.append(e["script_name"])
     return sorted(updated_scripts)
 
 def sched_update_script_usage() -> List[dict]:
-    names = [ e.name for e in getProjects(**ProjectScriptRule().dict()) ]
+    names = [ e.name for e in getProjects(**dict(ProjectScriptRule())) ]
     data = { "group": "TA-Team", "projects": names }
     with ConnectMongo(database='flask') as m:
         m.deleteDocument('scripts_name', many=True)
@@ -198,9 +198,9 @@ def sched_save_download_list(
 
 def sched_update_download_list(
     data: Dict[str, list] = {}, resp: Dict[str, list] = {}) -> Dict[str, list]:
-    endpoint = f'{settings.app_config["service"]["fastapi"]}.{settings.app_config["domain"][settings.env]}'
-    for p in getProjects(**ProjectScriptRule().dict()):
-        data[p.name]: List[Dict[str, Any]] = []
+    endpoint = f'{settings.app_config("SERVICE_FASTAPI")}.{settings.app_config(f"DOMAIN_{settings.env.upper()}")}'
+    for p in getProjects(**dict(ProjectScriptRule())):
+        data[p.name] = []
         tags = map(lambda x: x.name, p.tags.list(all=True))
         master_ver = get_ver_by_readme(by_project=p)
         for e in p.commits.list(ref_name='master', get_all=True):

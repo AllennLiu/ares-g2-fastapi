@@ -27,4 +27,5 @@ python-jose[cryptography]
 PyYAML
 pytesseract
 opencv-python-headless
+starlette[full]
 chinesecalendar

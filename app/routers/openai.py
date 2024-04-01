@@ -60,7 +60,7 @@ class Conversation:
 async def openai_conn(*args: Any, **keywords: Any) -> Coroutine[Any, Any, ChatCompletion]:
     client = AsyncAzureOpenAI(
         azure_endpoint = azure_openai.azure_openai_endpoint,
-        api_key        = azure_openai.azure_openai_api_key,
+        api_key        = str(azure_openai.azure_openai_api_key),
         api_version    = azure_openai.openai_api_version
     )
     return await client.chat.completions.create(*args, **keywords)

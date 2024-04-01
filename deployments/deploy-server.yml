@@ -47,8 +47,8 @@ spec:
               mountPath: /mnt
               readOnly: false
             - name: pyapp-config
-              mountPath: /usr/src/app/settings.json
-              subPath: settings.json
+              mountPath: /usr/src/app/.env
+              subPath: .env
       volumes:
         - name: tz-config
           hostPath:

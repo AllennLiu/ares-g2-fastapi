@@ -4,11 +4,13 @@
 import sys
 sys.path.append('library')
 
+from library.config import settings
 from library.openldap import ADHandler
 from library.params import validate_email
 
 from jose import JWTError, jwt
 from pydantic import BaseModel, validator
+from starlette.datastructures import Secret
 from starlette.responses import JSONResponse
 from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, Annotated, Coroutine, Optional, Union
@@ -16,8 +18,7 @@ from fastapi import status, APIRouter, HTTPException, Depends
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 # to get a string like this run:
-# openssl rand -hex 32
-SECRET_KEY: str = 'e7dcaf2c9aad1a9f68c7a53b8b7b3d106c91373d88c41ce9bdf7472b922065d9'
+SECRET_KEY: Secret = settings.app_config('JWT_SECRET_KEY', cast=Secret)
 ALGORITHM: str = 'HS256'
 ACCESS_TOKEN_EXPIRE_MINS: float = 1440.0
 
@@ -56,7 +57,7 @@ def create_access_token(
     else:
         expire: datetime = datetime.now(timezone.utc) + timedelta(minutes=720)
     to_encode |= { "exp": expire }
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return jwt.encode(to_encode, str(SECRET_KEY), algorithm=ALGORITHM)
 
 async def get_current_user(
     token: Annotated[str, Depends(oauth2_scheme)] = Depends(oauth2_scheme)
@@ -67,7 +68,7 @@ async def get_current_user(
         headers     = { "WWW-Authenticate": "Bearer" }
     )
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ ALGORITHM ])
+        payload = jwt.decode(token, str(SECRET_KEY), algorithms=[ ALGORITHM ])
         username: str = payload.get('sub')
         if username is None: raise credentials_exception
         TokenData(username=username)

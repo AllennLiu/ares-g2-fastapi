@@ -150,7 +150,7 @@ class Records(BaseModel):
     type      : Optional[str] = 'create'
 
 class Reschedule(Records):
-    schedules : Optional[dict] = Schedules().dict()
+    schedules : Optional[dict] = dict(Schedules())
 
 class TeRotate(Records):
     te_name : Optional[str] = ''
@@ -172,7 +172,7 @@ class MissionInfo(BaseModel):
     link               : Optional[str]  = ''
     repository         : Optional[str]  = ''
     coverages          : Optional[dict] = {}
-    schedules          : Optional[dict] = Schedules().dict()
+    schedules          : Optional[dict] = dict(Schedules())
     status             : Optional[str]  = 'assess'
     phase              : Optional[str]  = 'create'
     current            : str
@@ -191,7 +191,7 @@ class MissionInfo(BaseModel):
     history            : Optional[dict] = {}
     ta_manager         : Optional[str]  = LDAP.get_ta_manager()
     modified_date      : Optional[str]  = datetime_data().get('dt')
-    flags              : Optional[dict] = MissionFlag().dict()
+    flags              : Optional[dict] = dict(MissionFlag())
     script_version     : Optional[str]  = '0.0.1'
     te_data            : Optional[dict] = {}
     progress           : Union[int, str] = 0
@@ -212,98 +212,62 @@ class Receivers(BaseModel):
 
 MISSION_MAP = {
     "create": {
-        "prev": Model().dict(),
-        "next": Model(status='assess', current='owner').dict(),
-        "mail": Receivers(cc=[ 'owner' ]).dict()
+        "prev": dict(Model()),
+        "next": dict(Model(status='assess', current='owner')),
+        "mail": dict(Receivers(cc=[ 'owner' ]))
     },
     "assess": {
-        "prev": Model(phase='assess-reject').dict(),
-        "next": Model(
-            status='review', phase='assess-agree', current='ta_manager'
-        ).dict(),
-        "mail": Receivers(cc=[ 'requester' ]).dict()
+        "prev": dict(Model(phase='assess-reject')),
+        "next": dict(Model(status='review', phase='assess-agree', current='ta_manager')),
+        "mail": dict(Receivers(cc=[ 'requester' ]))
     },
     "review": {
-        "prev": Model(
-            status='assess', phase='review-reject', current='owner'
-        ).dict(),
-        "next": Model(
-            status='plan', phase='review-agree', current='developer', progress=20
-        ).dict(),
-        "mail": Receivers(cc=[ 'owner', 'lte_name', 'te_name', 'requester' ]).dict()
+        "prev": dict(Model(status='assess', phase='review-reject', current='owner')),
+        "next": dict(Model(status='plan', phase='review-agree', current='developer', progress=20)),
+        "mail": dict(Receivers(cc=[ 'owner', 'lte_name', 'te_name', 'requester' ]))
     },
     "plan": {
-        "prev": Model(status='assess', phase='assess-change').dict(),
-        "next": Model(
-            status='confirm', phase='confirm', current='lte_name', progress=20
-        ).dict(),
-        "mail": Receivers(cc=[ 'ta_manager', 'owner', 'lte_name', 'te_name', 'requester' ]).dict()
+        "prev": dict(Model(status='assess', phase='assess-change')),
+        "next": dict(Model(status='confirm', phase='confirm', current='lte_name', progress=20)),
+        "mail": dict(Receivers(cc=[ 'ta_manager', 'owner', 'lte_name', 'te_name', 'requester' ]))
     },
     "confirm": {
-        "prev": Model(
-            status='plan', phase='confirm-reject', current='developer', progress=20
-        ).dict(),
-        "next": Model(
-            status='development', phase='confirm-agree', current='developer', progress=40
-        ).dict(),
-        "mail": Receivers(cc=[ 'ta_manager', 'owner', 'developer', 'te_name', 'requester' ]).dict()
+        "prev": dict(Model(status='plan', phase='confirm-reject', current='developer', progress=20)),
+        "next": dict(Model(status='development', phase='confirm-agree', current='developer', progress=40)),
+        "mail": dict(Receivers(cc=[ 'ta_manager', 'owner', 'developer', 'te_name', 'requester' ]))
     },
     "development": {
-        "prev": Model(
-            status='confirm', phase='confirm-agree', current='lte_name', progress=20
-        ).dict(),
-        "next": Model(
-            status='validation', phase='development', current='te_name', progress=50
-        ).dict(),
-        "mail": Receivers(cc=[ 'ta_manager', 'owner', 'lte_name', 'te_name', 'requester' ]).dict()
+        "prev": dict(Model(status='confirm', phase='confirm-agree', current='lte_name', progress=20)),
+        "next": dict(Model(status='validation', phase='development', current='te_name', progress=50)),
+        "mail": dict(Receivers(cc=[ 'ta_manager', 'owner', 'lte_name', 'te_name', 'requester' ]))
     },
     "validation": {
-        "prev": Model(
-            status='development', phase='validation-fail', current='developer', progress=40
-        ).dict(),
-        "wait": Model(
-            status='validation', phase='validation-wait', current='te_name', progress=50
-        ).dict(),
-        "next": Model(
-            status='edit-readme', phase='validation-pass', current='developer', progress=75
-        ).dict(),
-        "mail": Receivers(cc=[ 'ta_manager', 'owner', 'developer', 'lte_name', 'requester' ]).dict()
+        "prev": dict(Model(status='development', phase='validation-fail', current='developer', progress=40)),
+        "wait": dict(Model(status='validation', phase='validation-wait', current='te_name', progress=50)),
+        "next": dict(Model(status='edit-readme', phase='validation-pass', current='developer', progress=75)),
+        "mail": dict(Receivers(cc=[ 'ta_manager', 'owner', 'developer', 'lte_name', 'requester' ]))
     },
     "edit-readme": {
-        "prev": Model(
-            status='validation', phase='validation-fail', current='te_name', progress=50
-        ).dict(),
-        "next": Model(
-            status='readme', phase='edit-readme', current='owner', progress=80
-        ).dict(),
-        "mail": Receivers(cc=[ 'ta_manager', 'owner', 'lte_name', 'te_name', 'requester' ]).dict()
+        "prev": dict(Model(status='validation', phase='validation-fail', current='te_name', progress=50)),
+        "next": dict(Model(status='readme', phase='edit-readme', current='owner', progress=80)),
+        "mail": dict(Receivers(cc=[ 'ta_manager', 'owner', 'lte_name', 'te_name', 'requester' ]))
     },
     "readme": {
-        "prev": Model(
-            status='edit-readme', phase='readme-change', current='developer', progress=75
-        ).dict(),
-        "next": Model(
-            status='pre-release', phase='pre-release', current='ta_manager', progress=90
-        ).dict(),
-        "mail": Receivers(cc=[ 'ta_manager', 'developer', 'lte_name', 'te_name', 'requester' ]).dict()
+        "prev": dict(Model(status='edit-readme', phase='readme-change', current='developer', progress=75)),
+        "next": dict(Model(status='pre-release', phase='pre-release', current='ta_manager', progress=90)),
+        "mail": dict(Receivers(cc=[ 'ta_manager', 'developer', 'lte_name', 'te_name', 'requester' ]))
     },
     "pre-release": {
-        "prev": Model(
-            status='readme', phase='release-change', current='owner', progress=80
-        ).dict(),
-        "next": Model(
-            status='release', phase='release', current='developer', progress=100
-        ).dict(),
-        "mail": Receivers(cc=[ 'owner', 'developer', 'lte_name', 'te_name', 'requester' ]).dict()
+        "prev": dict(Model(status='readme', phase='release-change', current='owner', progress=80)),
+        "next": dict(Model(status='release', phase='release', current='developer', progress=100)),
+        "mail": dict(Receivers(cc=[ 'owner', 'developer', 'lte_name', 'te_name', 'requester' ]))
     },
     "release": {
-        "prev": Model(
-            status='pre-release', phase='pre-release', current='ta_manager', progress=90
-        ).dict(),
-        "next": Model(status='assess', current='owner').dict(),
-        "mail": Receivers(cc=[ 'ta_manager', 'owner', 'lte_name', 'te_name', 'requester' ]).dict()
+        "prev": dict(Model(status='pre-release', phase='pre-release', current='ta_manager', progress=90)),
+        "next": dict(Model(status='assess', current='owner')),
+        "mail": dict(Receivers(cc=[ 'ta_manager', 'owner', 'lte_name', 'te_name', 'requester' ]))
     },
-    "unknown": { "prev": Model().dict(), "next": Model().dict() }
+    "unknown": { "prev": dict(Model()), "next": dict(Model()) }
 }
 
 MISSION_VER_MAP = {
@@ -351,7 +315,7 @@ class Mission:
     def rec(cls, mission: MissionInfo) -> Receivers:
         if Mission.data.get(mission.status):
             data = Mission.data[mission.status]["mail"]
-            ls = [ Mission.sep(mission.dict().get(e)) for e in data["cc"] ]
+            ls = [ Mission.sep(dict(mission).get(e)) for e in data["cc"] ]
             cc = Mission.rec_extra(mission) + list(flatten(ls)) + [ mission.author ]
             return Receivers(recipients=Mission.sep(mission.current), cc=cc)
         return Receivers()
@@ -359,8 +323,8 @@ class Mission:
     @classmethod
     def associates(cls, mission: MissionInfo, extra: List[str] = []) -> Receivers:
         receivers = [ 'owner', 'lte_name', 'te_name', 'developer', 'ta_manager' ]
-        reciv_cc = [ mission.dict().get(e) for e in [ 'owner', 'ta_manager' ] ]
-        recipients = [ Mission.sep(mission.dict().get(e)) for e in receivers ]
+        reciv_cc = [ dict(mission).get(e) for e in [ 'owner', 'ta_manager' ] ]
+        recipients = [ Mission.sep(dict(mission).get(e)) for e in receivers ]
         cc = Mission.rec_extra(mission) + reciv_cc + [ mission.author ]
         return Receivers(recipients=list(flatten(recipients)), cc=[ *cc, *extra ])
 

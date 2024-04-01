@@ -6,9 +6,9 @@ from library.config import settings
 from uuid import uuid4
 from pymongo import MongoClient
 from urllib.parse import quote_plus
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Union
 
-MONGO_URL = settings.app_config["mongodb"].get('prod' if settings.env == 'prod' else 'stag')
+MONGO_URL: str = settings.app_config(f'MONGODB_{settings.env.upper()}')
 
 class ConnectMongo:
     """Handle Mongodb to operate with collection and document.
@@ -80,11 +80,11 @@ class ConnectMongo:
             self.db_url = f'{self.url_head}{self.username}:{self.password}@{self.host}'
 
     def __enter__(self) -> MongoClient:
-        self.client = MongoClient(self.db_url)
+        self.client: MongoClient = MongoClient(self.db_url)
         self.db = self.client[self.database]
         return self
 
-    def __exit__(self, type: Any, value: Any, traceback: Any) -> None:
+    def __exit__(self, type: Any, value: Any, traceback: Any) -> Union[None, AssertionError]:
         self.client.close()
         if any(( type, value, traceback )):
             assert False, value
