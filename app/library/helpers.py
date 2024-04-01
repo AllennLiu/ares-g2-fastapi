@@ -10,8 +10,8 @@ from os import remove, walk, PathLike
 from functools import wraps, lru_cache
 from fastapi import WebSocketDisconnect
 from pydantic import FilePath, DirectoryPath
-from websockets.exceptions import ConnectionClosedError
-from os.path import join, isfile, isdir, exists, abspath, splitext
+from websockets.exceptions import ConnectionClosedError, ConnectionClosedOK
+from os.path import join, isfile, isdir, exists, abspath, splitext, dirname
 from typing import Any, Dict, List, Callable, Generator, Optional, TypeVar, Union
 
 try:
@@ -103,10 +103,10 @@ def websocket_catch(func: Callable[..., WEBSOCKET_T]) -> Callable[..., WEBSOCKET
             return await func(*args, **kwargs)
         except WebSocketDisconnect:
             pass
-        except ConnectionClosedError as err:
-            BackendPrint.info(str(err))
-        except Exception as err:
-            BackendPrint.error(str(err))
+        except ( ConnectionClosedError, ConnectionClosedOK ) as e:
+            BackendPrint.info(str(e))
+        except Exception as e:
+            BackendPrint.error(str(e))
     return wrapper
 
 CATCH_RETRY_T = TypeVar('CATCH_RETRY_T')
@@ -163,14 +163,15 @@ def create_commit_id() -> str:
     return str(uuid4()).replace('-', '') + str(uuid4()).replace('-', '')[-8::]
 
 @catch_except_retry()
-def safety_move(src: Union[str, PathLike] = '', dst: Union[str, PathLike] = '',
-    force: bool = False) -> Union[bool, AssertionError]:
+def safety_move(
+    src: Union[str, PathLike] = '', dst: Union[str, PathLike] = '', force: bool = False
+) -> Union[bool, AssertionError]:
     """安全地``搬移``或``重命名``文件"""
     assert src, 'empty source path detected'
     assert dst, 'empty destination detected'
     abs_src, abs_dst = abspath(src), abspath(dst)
     assert exists(abs_src), f'source path: {abs_src} not found'
-    assert exists(abs_dst), f'destination: {abs_dst} not found'
+    assert exists(parent := dirname(abs_dst)), f'destination: {parent} not found'
     assert abs_src not in EXCEPT_PATHS, f'should not in {EXCEPT_PATHS}'
     assert abs_dst not in EXCEPT_PATHS, f'should not in {EXCEPT_PATHS}'
     assert abs_src != abs_dst, 'source path and destination are the same'

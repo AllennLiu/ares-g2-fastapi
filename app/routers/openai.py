@@ -4,6 +4,7 @@
 import sys
 sys.path.append('library')
 
+from library.iteration import find
 from library.schemas import ChatGptDB
 from library.config import azure_openai
 from library.helpers import websocket_catch
@@ -23,9 +24,22 @@ from fastapi import APIRouter, WebSocket, Request, Form, Query
 
 FORM_ROLE = Form('user', description='The `role` of chat box')
 FORM_CONTENT = Form(..., description='Chat message content')
+FORM_TAB_NAME = Form('', description='Chat messages `tab name`')
+FORM_DATE = Form(str(datetime.now().date()), description='Chat messages recording `date`')
 QUERY_DATE = Query(str(datetime.now().date()), description='Chat messages recording `date`')
+QUERY_COLUMN = Query('deleted', description='Chat messages `column` _(multiple separate with `,`)_')
 
 router = APIRouter()
+
+@dataclass
+class ChatState:
+    record_number : int = 0
+    configs       : List[Dict[str, str]] = field(default_factory=lambda: [])
+
+@dataclass
+class ChatColumn:
+    date   : str = ''
+    column : Dict[str, Any] = field(default_factory=lambda: {})
 
 @dataclass
 class ChatRecord:
@@ -33,6 +47,7 @@ class ChatRecord:
     assistant : str  = ''
     user_id   : str  = ''
     date      : str  = str(datetime.now().date())
+    tab_name  : str  = ''
     timestamp : int  = round(datetime.now().timestamp())
     raw_data  : dict = field(default_factory=lambda: {})
     deleted   : bool = False
@@ -54,10 +69,12 @@ chat = partial(openai_conn, model=azure_openai.openai_api_model, frequency_penal
 
 def openai_chat_record(user: str, assistant: str, user_id: str, date: str, raw_data: dict) -> None:
     raw_data.pop('choices', None)
-    args: tuple = ( user, assistant, user_id, date, round(datetime.now().timestamp()), raw_data )
     with RedisContextManager() as r:
-        query = r.hget(ChatGptDB.records, user_id) or '[]'
-        data: List[Dict[str, Any]] = [ *loads(query), asdict(ChatRecord(*args)) ]
+        queries = loads(r.hget(ChatGptDB.records, user_id) or '[]')
+        entry = find(lambda q: q.get('date') == date and q.get('tab_name'), queries) or {}
+        ts = round(datetime.now().timestamp())
+        args = ( user, assistant, user_id, date, entry.get('tab_name', ''), ts, raw_data )
+        data: List[Dict[str, Any]] = [ *queries, asdict(ChatRecord(*args)) ]
         r.hset(ChatGptDB.records, user_id, dumps(data).encode('utf-8'))
 
 def openai_chat_get_records(user_id: str) -> List[dict]:
@@ -67,6 +84,14 @@ def openai_chat_get_records(user_id: str) -> List[dict]:
 def openai_chat_set_records(user_id: str, records: List[dict]) -> None:
     with RedisContextManager() as r:
         r.hset(ChatGptDB.records, user_id, dumps(records).encode('utf-8'))
+
+def openai_chat_configure(user_id: str, date: str, data: dict) -> List[dict]:
+    """Configure each message entires with passing data then save it"""
+    for q in (records := openai_chat_get_records(user_id)):
+        if q.get('date') != date: continue
+        q |= asdict(ChatRecord(**q | data))
+    openai_chat_set_records(user_id, records)
+    return records
 
 @lru_cache
 def openai_keep_conversation(user_id: str, date: str) -> List[Dict[str, str]]:
@@ -101,6 +126,21 @@ async def chat_box(websocket: WebSocket, user_id: str, date: str) -> None:
             content, ''.join(messages), user_id, date, chunk.model_dump(exclude_unset=True))
         await asleep(1)
 
+@router.websocket('/openai/ws/chat/stat/{user_id}/{date}')
+@websocket_catch
+async def chat_stat_socket(websocket: WebSocket, user_id: str, date: str) -> None:
+    await websocket.accept()
+    while True:
+        state: ChatState = ChatState()
+        for q in openai_chat_get_records(user_id):
+            if q.get('deleted'): continue
+            config = { "date": q.get('date'), "tab_name": q.get('tab_name') }
+            if config not in state.configs:
+                state.configs.append(config)
+            state.record_number += 2 if q.get('date') == date else 0
+        await websocket.send_json(asdict(state))
+        await asleep(10)
+
 @router.post('/api/v1/openai/chat', tags=['OpenAI'])
 async def create_chat(
     content: Annotated[str, FORM_CONTENT] = FORM_CONTENT,
@@ -110,10 +150,16 @@ async def create_chat(
     # resp = chat_completion.model_dump(exclude_unset=True)
     return JSONResponse(status_code=200, content=resp)
 
-@router.get('/api/v1/openai/chat/dates/{user_id}', tags=['OpenAI'])
-async def get_chat_dates(user_id: str) -> JSONResponse:
-    dates = { q.get('date') for q in openai_chat_get_records(user_id) if not q.get('deleted') }
-    return JSONResponse(status_code=200, content=list(dates))
+@router.get('/api/v1/openai/chat/column/{user_id}', tags=['OpenAI'])
+async def get_chat_column(
+    user_id: str, column: Annotated[str, QUERY_COLUMN] = QUERY_COLUMN) -> JSONResponse:
+    columns: List[Dict[str, Any]] = []
+    for q in openai_chat_get_records(user_id):
+        chat_column = { e: q.get(e) for e in column.split(',') if e in q }
+        if (data := asdict(ChatColumn(q.get('date'), chat_column))) in columns: continue
+        if not data.get('column') or q.get('deleted'): continue
+        columns.append(data)
+    return JSONResponse(status_code=200, content=list(columns))
 
 @router.get('/api/v1/openai/chat/messages/{user_id}', tags=['OpenAI'])
 async def get_chat_messages(
@@ -125,15 +171,20 @@ async def get_chat_messages(
 @router.put('/api/v1/openai/chat/messages/{user_id}', tags=['OpenAI'])
 async def update_chat_messages(user_id: str) -> JSONResponse:
     for q in (records := openai_chat_get_records(user_id)):
-        q = asdict(ChatRecord(**q | { "deleted": q.get('deleted', False) }))
+        q |= asdict(ChatRecord(**q))
     openai_chat_set_records(user_id, records)
     return JSONResponse(status_code=200, content=records)
 
 @router.delete('/api/v1/openai/chat/messages/{user_id}', tags=['OpenAI'])
 async def delete_chat_messages(
-    user_id: str, date: Annotated[str, QUERY_DATE] = QUERY_DATE) -> JSONResponse:
-    for q in (records := openai_chat_get_records(user_id)):
-        q = asdict(ChatRecord(
-            **q | { "deleted": True if q.get('date') == date else q.get('deleted', False) }))
-    openai_chat_set_records(user_id, records)
-    return JSONResponse(status_code=200, content=records)
+    user_id: str, date: Annotated[str, FORM_DATE] = FORM_DATE) -> JSONResponse:
+    resp = openai_chat_configure(user_id, date, { "deleted": True })
+    return JSONResponse(status_code=200, content=resp)
+
+@router.put('/api/v1/openai/chat/rename/{user_id}', tags=['OpenAI'])
+async def rename_chat_messages(
+    user_id : str,
+    date    : Annotated[str, FORM_DATE] = FORM_DATE,
+    tab_name: Annotated[str, FORM_TAB_NAME] = FORM_TAB_NAME) -> JSONResponse:
+    resp = openai_chat_configure(user_id, date, { "tab_name": tab_name or date })
+    return JSONResponse(status_code=200, content=resp)

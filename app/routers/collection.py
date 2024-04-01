@@ -15,6 +15,7 @@ from library.params import json_parse, validate_payloads, QUERY_DATE_STRING, FOR
 from library.helpers import safety_move, safety_remove, safety_rmtree, version_increment, read_file_chunks, BackendPrint
 
 from uuid import uuid4
+from shutil import move
 from time import strftime
 from re import sub, search
 from json import loads, dumps
@@ -170,8 +171,7 @@ def collection_operation_manager(requirements: list, date: str) -> tuple:
                     r.hset(
                         CollectionDB.maps,
                         join(gitlab, file),
-                        str(e | { "uuid": str(uuid4()), "modified_date": date })
-                    )
+                        str(e | { "uuid": str(uuid4()), "modified_date": date }))
                     source = join(MOUNT_PATH_FILE_STORAGE, file)
                     target = join(MOUNT_PATH_ROOT, gitlab, file)
                     operations.append(e | { "action": f"move({source}, {target})" })
@@ -191,8 +191,7 @@ def collection_operation_manager(requirements: list, date: str) -> tuple:
                     r.hset(
                         CollectionDB.maps,
                         join(gitlab, ntbasename(file)),
-                        str(query | e | { "file": ntbasename(file), "modified_date": date })
-                    )
+                        str(query | e | { "file": ntbasename(file), "modified_date": date }))
                     source = join(MOUNT_PATH_ROOT, file)
                     target = join(MOUNT_PATH_ROOT, gitlab, ntbasename(file))
                     operations.append(e | { "action": f"move({source}, {target})" })
@@ -208,8 +207,7 @@ def collection_operation_manager(requirements: list, date: str) -> tuple:
                     r.hset(
                         CollectionDB.maps,
                         gitlab,
-                        str(query | e | { "gitlab": ntdirname(gitlab), "modified_date": date })
-                    )
+                        str(query | e | { "gitlab": ntdirname(gitlab), "modified_date": date }))
                     source = join(MOUNT_PATH_FILE_STORAGE, file)
                     target = join(MOUNT_PATH_ROOT, gitlab)
                     operations.append(e | { "action": f"move({source}, {target})" })

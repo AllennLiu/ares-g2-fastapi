@@ -252,7 +252,7 @@ async def update_script_log_types(logtypes: ScriptItem) -> JSONResponse:
 
 @router.get('/api/v1/scripts/coverage/platforms', tags=['Scripts'])
 async def listed_coverage_platforms() -> JSONResponse:
-    resp = { "list": scripts_query(RedisDB.platforms, 'platforms') }
+    resp = { "platforms": scripts_query(RedisDB.platforms, 'platforms') }
     return JSONResponse(status_code=200, content=resp)
 
 @router.put('/api/v1/scripts/coverage/platforms', tags=['Scripts'])
