@@ -11,6 +11,10 @@ class MetaTags:
             "description": "**Sign in/out** your account with **`Inventec AD`**"
         },
         {
+            "name"       : "Session",
+            "description": "Create the **`Session`** to access which API **require storing data to `Cookie`**."
+        },
+        {
             "name"       : "OpenLDAP",
             "description": "Access `OpenLDAP` entiry **group by SIT**."
         },

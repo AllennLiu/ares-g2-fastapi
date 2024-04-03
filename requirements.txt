@@ -11,6 +11,7 @@ aiofiles
 openpyxl
 fastapi
 fastapi-mail==1.0.8
+fastapi-sessions
 redis
 pymongo
 ldap3==2.5.0

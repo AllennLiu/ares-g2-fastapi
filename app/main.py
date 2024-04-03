@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html, get_swagger_ui_oauth2_redirect_html
 
 # include routers
-from routers import authorize, openldap, openai, utility, postman, project, scripts, reports, mission, logfilter, collection, automation
+from routers import authorize, session, openldap, openai, utility, postman, project, scripts, reports, mission, logfilter, collection, automation
 
 readme = read_readme('../README.md')
 
@@ -59,6 +59,6 @@ async def swagger_ui_redirect():
     return get_swagger_ui_oauth2_redirect_html()
 
 # include router instance
-routers = [ authorize, openldap, openai, utility, postman, project, scripts, reports, mission, logfilter, collection, automation ]
+routers = [ authorize, session, openldap, openai, utility, postman, project, scripts, reports, mission, logfilter, collection, automation ]
 for router in routers:
     app.include_router(router.router)

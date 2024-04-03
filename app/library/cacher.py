@@ -6,10 +6,12 @@ from schemas import RedisDB
 from params import json_parse
 from library.config import settings
 
-from json import dumps
+from json import loads, dumps
 from redis import Redis, ConnectionPool
-from typing import Any, Dict, List, Union
-from argparse import ArgumentParser, RawTextHelpFormatter, Namespace
+from argparse import ArgumentParser, Namespace
+from typing import Any, Dict, List, Generic, Union
+from fastapi_sessions.frontends.session_frontend import ID
+from fastapi_sessions.backends.session_backend import BackendError, SessionBackend, SessionModel
 
 global REDIS_URL, REDIS_DB_INDEX
 
@@ -84,6 +86,37 @@ class RedisContextManager:
     def parse_hgetall(self, data: Dict[Union[str, int], Any] = {}) -> Dict[Union[str, int], Any]:
         return { k: json_parse(data[k]) for k in data }
 
+class RedisBackend(Generic[ID, SessionModel], SessionBackend[ID, SessionModel]):
+    """Stores session data to Redis expired cache."""
+    def __init__(self) -> None:
+        ...
+
+    async def create(
+        self, session_id: ID, data: SessionModel, expires: int
+    ) -> Union[None, BackendError]:
+        with RedisContextManager() as r:
+            query = r.hget(name := f'session-{session_id}', 'session')
+            if query:
+                raise BackendError('create can not overwrite an existing session')
+            r.hset(name, 'session', dumps(dict(data)))
+            r.expire(name, expires)
+
+    async def read(self, session_id: ID) -> Union[Dict[str, Any], None]:
+        with RedisContextManager() as r:
+            query = r.hget(f'session-{session_id}', 'session') or '{}'
+            return loads(query) or None
+
+    async def update(self, session_id: ID, data: SessionModel) -> None:
+        with RedisContextManager() as r:
+            query = r.hget(name := f'session-{session_id}', 'session')
+            if not query:
+                raise BackendError('session does not exist, cannot update')
+            r.hset(name, 'session', dumps(dict(data)))
+
+    async def delete(self, session_id: ID) -> None:
+        with RedisContextManager() as r:
+            r.delete(f'session-{session_id}')
+
 def get_script_customers() -> List[str]:
     with RedisContextManager() as r:
         customers = r.hget(RedisDB.customers, 'customers')
@@ -96,13 +129,13 @@ def get_customers_by_name(name: str, customers: List[str]) -> List[str]:
 
 def args_parser() -> Namespace:
     global ARGS, REDIS_URL, REDIS_DB_INDEX
-    parser = ArgumentParser(description='Redis manageemnt.', formatter_class=RawTextHelpFormatter)
+    parser = ArgumentParser(description='Redis manageemnt.')
     parser.add_argument('-n', '--name', action='store', type=str, default='gitlab-script-list',
-                        help='set name of redis collection\n(default: %(default)s)')
+                        help='set name of redis collection (default: %(default)s)')
     parser.add_argument('--redis-url', action='store', type=str, default=REDIS_URL,
-                        help='set url of redis\n(default: %(default)s)')
+                        help='set url of redis (default: %(default)s)')
     parser.add_argument('--redis-db', action='store', type=int, default=REDIS_DB_INDEX,
-                        help='set db index of redis\n(default: %(default)s)')
+                        help='set db index of redis (default: %(default)s)')
     ARGS = parser.parse_args()
     REDIS_URL = ARGS.redis_url
     REDIS_DB_INDEX = ARGS.redis_db

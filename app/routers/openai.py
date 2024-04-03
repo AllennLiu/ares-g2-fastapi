@@ -9,7 +9,9 @@ from library.schemas import ChatGptDB
 from library.config import azure_openai
 from library.helpers import websocket_catch
 from library.cacher import RedisContextManager
+from routers.session import backend, cookie, session_exist
 
+from uuid import UUID
 from json import loads, dumps
 from datetime import datetime
 from openai import AsyncAzureOpenAI
@@ -17,10 +19,10 @@ from asyncio import sleep as asleep
 from functools import lru_cache, partial
 from openai.types.chat import ChatCompletion
 from fastapi.templating import Jinja2Templates
-from dataclasses import asdict, dataclass, field
 from typing import Any, Dict, List, Annotated, Coroutine
+from dataclasses import asdict, dataclass, field, fields
 from starlette.responses import JSONResponse, HTMLResponse
-from fastapi import APIRouter, WebSocket, Request, Form, Query
+from fastapi import APIRouter, WebSocket, Request, Form, Query, Depends
 
 FORM_ROLE = Form('user', description='The `role` of chat box')
 FORM_CONTENT = Form(..., description='Chat message content')
@@ -56,6 +58,12 @@ class ChatRecord:
 class Conversation:
     role    : str = 'system'
     content : str = 'You are a helpful assistant.'
+
+    def __init__(self, **kwargs: Any) -> None:
+        names = set([ f.name for f in fields(self) ])
+        for k in kwargs:
+            if k in names:
+                setattr(self, k, kwargs[k])
 
 async def openai_conn(*args: Any, **keywords: Any) -> Coroutine[Any, Any, ChatCompletion]:
     client = AsyncAzureOpenAI(
@@ -99,7 +107,7 @@ def openai_keep_conversation(user_id: str, date: str) -> List[Dict[str, str]]:
     for q in openai_chat_get_records(user_id):
         if q.get('date') != date: continue
         for role in [ 'user', 'assistant' ]:
-            conversations.append(asdict(Conversation(role, q.get(role))))
+            conversations.append(asdict(Conversation(role=role, content=q.get(role))))
     return conversations
 
 @router.get('/openai/chatgpt', response_class=HTMLResponse, include_in_schema=False)
@@ -143,12 +151,17 @@ async def chat_stat_socket(websocket: WebSocket, user_id: str, date: str) -> Non
 
 @router.post('/api/v1/openai/chat', tags=['OpenAI'])
 async def create_chat(
-    content: Annotated[str, FORM_CONTENT] = FORM_CONTENT,
-    role   : Annotated[str, FORM_ROLE] = FORM_ROLE) -> JSONResponse:
-    chat_completion = await chat(messages = [{ "role": role, "content": content }])
-    resp = dict(chat_completion.choices[0].message)
-    # resp = chat_completion.model_dump(exclude_unset=True)
-    return JSONResponse(status_code=200, content=resp)
+    content   : Annotated[str, FORM_CONTENT] = FORM_CONTENT,
+    role      : Annotated[str, FORM_ROLE] = FORM_ROLE,
+    session_id: UUID = Depends(cookie)) -> JSONResponse:
+    session_data = await session_exist(session_id)
+    session_data.data["conversations"] = session_data.data.get('conversations', [asdict(Conversation())])
+    session_data.data["conversations"].append(asdict(Conversation(role=role, content=content)))
+    chat_completion = await chat(messages=session_data.data["conversations"])
+    reply = dict(chat_completion.choices[0].message)
+    session_data.data["conversations"].append(asdict(Conversation(**reply)))
+    await backend.update(session_id, session_data)
+    return JSONResponse(status_code=200, content=dict(session_data))
 
 @router.get('/api/v1/openai/chat/column/{user_id}', tags=['OpenAI'])
 async def get_chat_column(
